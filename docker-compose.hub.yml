@@ -2,8 +2,7 @@ version: '3.8'
 
 services:
   notepad:
-    build: .
-    image: minimalist-web-notepad:local
+    image: tszlznl/mini-note-go:latest
     ports:
       - "20008:20008"
     volumes:

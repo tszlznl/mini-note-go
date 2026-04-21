@@ -24,8 +24,16 @@ docker run -d \
 
 ### Docker Compose
 
+**方式一：本地构建（开发调试）**
+
 ```bash
 docker-compose up -d
+```
+
+**方式二：从 Docker Hub 拉取（生产环境）**
+
+```bash
+docker-compose -f docker-compose.hub.yml up -d
 ```
 
 ### 从源码构建
