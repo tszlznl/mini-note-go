@@ -30,32 +30,34 @@ func init() {
 }
 
 func registerHandlers(dataDir string) {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case "/":
-			serveIndex(w, r)
-		case "/list":
-			listNotes(w, r, dataDir)
-		default:
-			id := strings.TrimPrefix(r.URL.Path, "/")
-			if !validIDRegex.MatchString(id) {
-				http.NotFound(w, r)
-				return
-			}
-			switch r.Method {
-			case http.MethodGet:
-				readNote(w, r, dataDir, id)
-			case http.MethodPost:
-				if readOnly {
-					http.Error(w, "Read only mode", http.StatusForbidden)
-					return
-				}
-				writeNote(w, r, dataDir, id)
-			default:
-				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			}
-		}
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/", serveIndex)
+	mux.HandleFunc("/list", func(w http.ResponseWriter, r *http.Request) {
+		listNotes(w, r, dataDir)
 	})
+	mux.HandleFunc("/note/", func(w http.ResponseWriter, r *http.Request) {
+		handleNote(w, r, dataDir)
+	})
+
+	http.Handle("/", mux)
+}
+
+func handleNote(w http.ResponseWriter, r *http.Request, dataDir string) {
+	id := strings.TrimPrefix(r.URL.Path, "/note/")
+	if id == "" || !validIDRegex.MatchString(id) {
+		http.NotFound(w, r)
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		readNote(w, r, dataDir, id)
+	case http.MethodPost:
+		writeNote(w, r, dataDir, id)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
 }
 
 func serveIndex(w http.ResponseWriter, r *http.Request) {
@@ -83,6 +85,11 @@ func readNote(w http.ResponseWriter, r *http.Request, dataDir, id string) {
 }
 
 func writeNote(w http.ResponseWriter, r *http.Request, dataDir, id string) {
+	if readOnly {
+		http.Error(w, "Read only mode", http.StatusForbidden)
+		return
+	}
+
 	content, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxNoteSize+1))
 	if err != nil {
 		http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
