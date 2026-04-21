@@ -255,13 +255,42 @@ var indexHTML = `
             editor.focus();
         }
         async function copyLink() {
+            const url = window.location.href;
+            let success = false;
+            
             try {
-                await navigator.clipboard.writeText(window.location.href);
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(url);
+                    success = true;
+                }
+            } catch (error) {
+                console.error('Clipboard API failed, falling back:', error);
+            }
+            
+            if (!success) {
+                try {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = url;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    
+                    success = document.execCommand('copy');
+                    textArea.remove();
+                } catch (error) {
+                    console.error('Fallback copy failed:', error);
+                }
+            }
+            
+            if (success) {
                 const originalText = saveText.textContent;
                 saveText.textContent = '链接已复制!';
                 setTimeout(() => saveText.textContent = originalText, 2000);
-            } catch (error) {
-                console.error('Failed to copy:', error);
+            } else {
+                alert('复制失败，请手动复制浏览器地址栏的链接');
             }
         }
         editor.addEventListener('input', scheduleSave);
