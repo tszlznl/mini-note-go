@@ -32,26 +32,51 @@ func init() {
 func registerHandlers(dataDir string) {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/", serveIndex)
-	mux.HandleFunc("/list", func(w http.ResponseWriter, r *http.Request) {
-		listNotes(w, r, dataDir)
-	})
-	mux.HandleFunc("/note/", func(w http.ResponseWriter, r *http.Request) {
-		handleNote(w, r, dataDir)
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			serveIndex(w, r)
+			return
+		}
+
+		id := strings.TrimPrefix(r.URL.Path, "/")
+		if id == "list" {
+			listNotes(w, r, dataDir)
+			return
+		}
+
+		if !validIDRegex.MatchString(id) {
+			http.NotFound(w, r)
+			return
+		}
+
+		handleNote(w, r, dataDir, id)
 	})
 
 	http.Handle("/", mux)
 }
 
-func handleNote(w http.ResponseWriter, r *http.Request, dataDir string) {
-	id := strings.TrimPrefix(r.URL.Path, "/note/")
-	if id == "" || !validIDRegex.MatchString(id) {
-		http.NotFound(w, r)
-		return
-	}
-
+func handleNote(w http.ResponseWriter, r *http.Request, dataDir, id string) {
 	switch r.Method {
 	case http.MethodGet:
+		// Check for raw query parameter
+		if r.URL.Query().Has("raw") {
+			readNote(w, r, dataDir, id)
+			return
+		}
+
+		// Check for specific headers to determine if we should return raw text
+		accept := r.Header.Get("Accept")
+		userAgent := strings.ToLower(r.Header.Get("User-Agent"))
+		
+		isCurlOrWget := strings.Contains(userAgent, "curl") || strings.Contains(userAgent, "wget")
+		isBrowser := strings.Contains(accept, "text/html")
+
+		if isBrowser && !isCurlOrWget {
+			serveIndex(w, r)
+			return
+		}
+		
+		// If explicitly requesting text/plain, or it's a CLI tool, return raw note
 		readNote(w, r, dataDir, id)
 	case http.MethodPost:
 		writeNote(w, r, dataDir, id)

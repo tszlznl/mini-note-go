@@ -200,7 +200,7 @@ var indexHTML = `
             return id;
         }
         function updateURL(id) {
-            const newUrl = window.location.origin + '/note/' + id;
+            const newUrl = window.location.origin + '/' + id;
             window.history.pushState({ id: id }, '', newUrl);
             urlDisplay.textContent = newUrl;
             currentId = id;
@@ -215,7 +215,7 @@ var indexHTML = `
             isSaving = true;
             showSaveStatus('saving');
             try {
-                const response = await fetch('/note/' + currentId, {
+                const response = await fetch('/' + currentId, {
                     method: 'POST',
                     body: editor.value,
                     headers: { 'Content-Type': 'text/plain' }
@@ -239,7 +239,7 @@ var indexHTML = `
         }
         async function loadNote(id) {
             try {
-                const response = await fetch('/note/' + id);
+                const response = await fetch('/' + id + '?raw=1');
                 if (response.ok) {
                     const content = await response.text();
                     editor.value = content;
@@ -255,13 +255,42 @@ var indexHTML = `
             editor.focus();
         }
         async function copyLink() {
+            const url = window.location.href;
+            let success = false;
+            
             try {
-                await navigator.clipboard.writeText(window.location.href);
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(url);
+                    success = true;
+                }
+            } catch (error) {
+                // Silently fallback without polluting console
+            }
+            
+            if (!success) {
+                try {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = url;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    
+                    success = document.execCommand('copy');
+                    textArea.remove();
+                } catch (error) {
+                    console.error('Fallback copy failed:', error);
+                }
+            }
+            
+            if (success) {
                 const originalText = saveText.textContent;
                 saveText.textContent = '链接已复制!';
                 setTimeout(() => saveText.textContent = originalText, 2000);
-            } catch (error) {
-                console.error('Failed to copy:', error);
+            } else {
+                alert('复制失败，请手动复制浏览器地址栏的链接');
             }
         }
         editor.addEventListener('input', scheduleSave);
@@ -273,8 +302,8 @@ var indexHTML = `
         });
         document.addEventListener('DOMContentLoaded', function() {
             const path = window.location.pathname;
-            const match = path.match(/^\/note\/([a-zA-Z0-9_-]+)$/);
-            if (match) {
+            const match = path.match(/^\/([a-zA-Z0-9_-]+)$/);
+            if (match && match[1] !== 'list') {
                 currentId = match[1];
                 urlDisplay.textContent = window.location.href;
                 loadNote(currentId);
