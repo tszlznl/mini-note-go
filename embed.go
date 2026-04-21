@@ -264,7 +264,7 @@ var indexHTML = `
                     success = true;
                 }
             } catch (error) {
-                console.error('Clipboard API failed, falling back:', error);
+                // Silently fallback without polluting console
             }
             
             if (!success) {
