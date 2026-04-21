@@ -1,0 +1,6 @@
+app
+app.exe
+_tmp/
+data/
+.vscode/
+.DS_Store

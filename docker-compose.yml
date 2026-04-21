@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  notepad:
+    build: .
+    image: minimalist-web-notepad:latest
+    ports:
+      - "20008:20008"
+    volumes:
+      - ./data:/tmp
+    environment:
+      - LISTEN_ADDR=:20008
+      - DATA_DIR=/tmp
+      - MAX_NOTE_SIZE=1048576
+      - READ_ONLY=false
+    restart: unless-stopped
