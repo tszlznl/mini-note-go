@@ -1,19 +1,19 @@
-# Minimalist Web Notepad
+# Minimalist Web Notepad（极简网页记事本）
 
-A minimalist web-based notepad where the URL is the note. No login required, no database, pure file system storage.
+一个极简的基于网页的记事本，URL 就是笔记本身。无需登录，无需数据库，纯文件系统存储。
 
-## Features
+## 功能特性
 
-- **URL is the note** - Share the URL to share your note
-- **Zero dependencies** - Single static binary
-- **Instant save** - Type and your changes are saved automatically
-- **Pure file system** - Notes stored as plain text files
-- **Lightweight** - Docker image ~6-12MB
-- **Cross-platform** - Supports amd64 and arm64
+- **URL 即是笔记** - 分享 URL 即可分享笔记
+- **零依赖** - 单个静态二进制文件
+- **即时保存** - 输入即保存
+- **纯文件系统** - 笔记以纯文本文件存储
+- **轻量级** - Docker 镜像约 6-12MB
+- **跨平台** - 支持 amd64 和 arm64
 
-## Quick Start
+## 快速开始
 
-### Docker (Recommended)
+### Docker（推荐）
 
 ```bash
 docker run -d \
@@ -28,47 +28,47 @@ docker run -d \
 docker-compose up -d
 ```
 
-### From Source
+### 从源码构建
 
 ```bash
 go build -o app .
 ./app
 ```
 
-## Configuration
+## 配置
 
-All configuration via environment variables:
+所有配置通过环境变量进行：
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `LISTEN_ADDR` | `:20008` | Listen address |
-| `DATA_DIR` | `/tmp` | Notes storage directory |
-| `MAX_NOTE_SIZE` | `1048576` | Max note size in bytes (1MB) |
-| `READ_ONLY` | `false` | Read-only mode |
+| 变量名 | 默认值 | 描述 |
+|--------|--------|------|
+| `LISTEN_ADDR` | `:20008` | 监听地址 |
+| `DATA_DIR` | `/tmp` | 笔记存储目录 |
+| `MAX_NOTE_SIZE` | `1048576` | 最大笔记大小（字节），默认 1MB |
+| `READ_ONLY` | `false` | 只读模式 |
 
-## API
+## API 接口
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/` | Home page |
-| GET | `/{id}` | Read note by ID |
-| POST | `/{id}` | Save note by ID |
-| GET | `/list` | List all notes |
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| GET | `/` | 首页 |
+| GET | `/note/{id}` | 根据 ID 读取笔记 |
+| POST | `/note/{id}` | 根据 ID 保存笔记 |
+| GET | `/list` | 列出所有笔记 |
 
-## Development
+## 开发
 
 ```bash
 go run .
 ```
 
-Visit http://localhost:20008
+访问 http://localhost:20008
 
-## Building Docker Image
+## 构建 Docker 镜像
 
 ```bash
 docker build -t minimalist-web-notepad:latest .
 ```
 
-## License
+## 许可证
 
 MIT
