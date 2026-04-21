@@ -200,7 +200,7 @@ var indexHTML = `
             return id;
         }
         function updateURL(id) {
-            const newUrl = window.location.origin + '/' + id;
+            const newUrl = window.location.origin + '/note/' + id;
             window.history.pushState({ id: id }, '', newUrl);
             urlDisplay.textContent = newUrl;
             currentId = id;
@@ -215,7 +215,7 @@ var indexHTML = `
             isSaving = true;
             showSaveStatus('saving');
             try {
-                const response = await fetch('/' + currentId, {
+                const response = await fetch('/note/' + currentId, {
                     method: 'POST',
                     body: editor.value,
                     headers: { 'Content-Type': 'text/plain' }
@@ -239,7 +239,7 @@ var indexHTML = `
         }
         async function loadNote(id) {
             try {
-                const response = await fetch('/' + id);
+                const response = await fetch('/note/' + id);
                 if (response.ok) {
                     const content = await response.text();
                     editor.value = content;
@@ -272,9 +272,10 @@ var indexHTML = `
             }
         });
         document.addEventListener('DOMContentLoaded', function() {
-            const path = window.location.pathname.slice(1);
-            if (path && path !== 'list') {
-                currentId = path;
+            const path = window.location.pathname;
+            const match = path.match(/^\/note\/([a-zA-Z0-9_-]+)$/);
+            if (match) {
+                currentId = match[1];
                 urlDisplay.textContent = window.location.href;
                 loadNote(currentId);
             } else {
